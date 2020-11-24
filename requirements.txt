@@ -22,6 +22,6 @@ urllib3==1.25.9
 Werkzeug==1.0.1
 wrapt==1.12.1
 Flask-Cors==3.0.9
-matplotlib=3.3.3
-opencv-python=4.4.0.46
-pytesseract=0.3.6
+matplotlib==3.3.3
+opencv-python==4.4.0.46
+pytesseract==0.3.6
