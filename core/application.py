@@ -37,7 +37,67 @@ def word_to_number_converter(word):
 			res += letter
 	return res
 
-def ocr_ktp():
+def match_ktp_nik():
+	if request.method == "POST":
+		image = request.files["ktp"]
+		noktp = request.form['nik']
+
+		if image.filename == "":
+			return {
+				'success':False,
+				'message':'Empty Fields!'
+			}
+
+		if noktp == "":
+			return {
+				'success':False,
+				'message':'Empty Fields!'
+			}
+
+		if allowed_image(image.filename):
+			img = cv2.imdecode(np.fromstring(request.files['ktp'].read(), np.uint8), cv2.IMREAD_UNCHANGED)  
+			gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+			th, threshed = cv2.threshold(gray, 127, 255, cv2.THRESH_TRUNC)
+			result = pytesseract.image_to_string((threshed), lang="ind")
+			result.replace('\n', ' ')
+			match = False
+
+			if 'NIK' in result:
+
+				for word in result.split("\n"):
+					if "NIK" in word:
+						word = word.split(':')
+						nik = word_to_number_converter(word[-1].replace(" ", ""))
+						
+						if noktp == nik:
+							match = True
+						else:
+							match = False
+
+						return {
+							'success':True,
+							'result': {
+								'match':match,
+								'nik':noktp
+							}
+						}	
+			else:
+				return {
+					'success':False,
+					'message':'KTP Tidak Terdeteksi'
+						}			
+		else: 
+			return {
+				'success':False,
+				'message':'Extension Not Allowed!'
+			}			
+	else:
+		return {
+			'success':False,
+			'message':'Method Not Allowed!'
+		}
+
+def valid_ktp():
 	if request.method == "POST":
 		image = request.files["ktp"]
 
@@ -48,7 +108,48 @@ def ocr_ktp():
 			}
 
 		if allowed_image(image.filename):
-			img = cv2.imdecode(np.fromstring(request.files['ktp'].read(), np.uint8), cv2.IMREAD_UNCHANGED)	
+			img = cv2.imdecode(np.fromstring(request.files['ktp'].read(), np.uint8), cv2.IMREAD_UNCHANGED)  
+			gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+			th, threshed = cv2.threshold(gray, 127, 255, cv2.THRESH_TRUNC)
+			result = pytesseract.image_to_string((threshed), lang="ind")
+			result.replace('\n', ' ')
+			valid = False
+
+			if 'NIK' in result:
+				valid = True
+			else:
+				valid = False
+
+			return {
+				'success':True,
+				'result':{
+					'valid':valid
+				}
+			}
+
+		else:
+			return {
+				'success':False,
+				'message':'Extension Not Allowed!'
+			}	
+	else:
+		return {
+			'success':False,
+			'message':'Method Not Allowed!'
+		}
+
+def extract_ktp():
+	if request.method == "POST":
+		image = request.files["ktp"]
+
+		if image.filename == "":
+			return {
+				'success':False,
+				'message':'Empty Fields!'
+			}
+
+		if allowed_image(image.filename):
+			img = cv2.imdecode(np.fromstring(request.files['ktp'].read(), np.uint8), cv2.IMREAD_UNCHANGED)  
 			gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 			th, threshed = cv2.threshold(gray, 127, 255, cv2.THRESH_TRUNC)
 			result = pytesseract.image_to_string((threshed), lang="ind")
@@ -68,7 +169,7 @@ def ocr_ktp():
 					if "Lahir" in word:
 						word = word.split(':')
 						tgl_lahir = re.search("([0-9]{2}\-[0-9]{2}\-[0-9]{4})", word[-1])[0]
-						tmp_lahir = word[-1].replace(tgl_lahir, '')		
+						tmp_lahir = word[-1].replace(tgl_lahir, '')     
 						continue
 
 					if 'Darah' in word:
@@ -77,11 +178,12 @@ def ocr_ktp():
 
 				return {
 					'success':True,
-					'message':'valid_ktp',
+					'message':'Valid KTP',
 					'data': {
 						'nik':nik,
 						'nama':nama,
-						'ttl': tgl_lahir + ', '+ tmp_lahir,
+						'tanggal_lahir': tgl_lahir,
+						'tempat_lahir':tmp_lahir,
 						'jenis_kelamin':jenis_kelamin
 					}
 				}
@@ -89,14 +191,14 @@ def ocr_ktp():
 			elif 'NIK' in result:
 				return {
 					'success':True,
-					'message':'blur_ktp'
-				}	
+					'message':'Foto KTP BLur/Rusak/Low Resolution'
+				}   
 			else:
 				return {
 					'success':False,
-					'message':'no_valid'
+					'message':'KTP Tidak Terdeteksi'
 				}
-		else:	
+		else:   
 			return {
 				'success':False,
 				'message':'Extension Not Allowed!'
@@ -104,5 +206,5 @@ def ocr_ktp():
 	else:
 		return {
 			'success':False,
-			'message':'method Not Allowed!'
+			'message':'mMthod Not Allowed!'
 		}
