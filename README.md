@@ -1,7 +1,5 @@
 # KTP Validation Image
 
-[Demo](https://dev-komik.pojokan.my.id/)
-
 ## Installation
 
 * Clone the Repo
@@ -36,7 +34,9 @@ Then open [http://127.0.0.1:5000/](http://127.0.0.1:5000/)
 
 | Url        | Params           | Type |
 | ------------- |:-------------:| :-----:| 
-| /v1/valid      | ktp | Files | 
+| /api/valid      | ktp | Files | 
+| /api/extract_ktp	| ktp | Files |
+| /api/match	| ktp,nik | Files, Integer |
 
 ---
 
